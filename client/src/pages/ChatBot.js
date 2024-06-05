@@ -1,42 +1,47 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import { useState } from "react";
+import axios from "axios";
+import { useMutation } from "@tanstack/react-query";
+import "./ChatBot.css";
+const makeRequestAPI = async (prompt) => {
+  const res = await axios.post("http://localhost:8080/diagnose", { prompt });
+  return res.data;
+};
 
-const ChatBot = () => {
-  const [inputText, setInputText] = useState('');
-  const [generatedText, setGeneratedText] = useState('');
-
-  const handleInputChange = (event) => {
-    setInputText(event.target.value);
+function ChatBot() {
+  const [prompt, setPrompt] = useState("");
+  const mutation = useMutation({
+    mutationFn: makeRequestAPI,
+    mutationKey: ["gemini-ai-request"],
+  });
+  const submitHandler = (e) => {
+    e.preventDefault();
+    mutation.mutate(prompt);
   };
-
-  const handleGenerateText = async () => {
-    const modelName = 'BioMistral/BioMistral-7B'; // Specify your Hugging Face model name
-    try {
-      const response = await axios.post('/api/generate-text', { inputText, modelName });
-      setGeneratedText(response.data.generatedText);
-    } catch (error) {
-      console.error('Error generating text:', error);
-    }
-  };
-
+  console.log(mutation);
   return (
-    <div>
-      <h2>Text Generation</h2>
-      <textarea
-        rows={6}
-        cols={50}
-        value={inputText}
-        onChange={handleInputChange}
-        placeholder="Enter your input text here..."
-      />
-      <br />
-      <button onClick={handleGenerateText}>Generate Text</button>
-      <h3>Generated Text:</h3>
-      <div style={{ whiteSpace: 'pre-wrap', border: '1px solid #ccc', padding: '10px' }}>
-        {generatedText}
-      </div>
+    <div className="App">
+      <header>Gemini AI Content Generator</header>
+      <p>Enter a prompt and let Gemini AI craft a unique content for you.</p>
+      <form className="App-form" onSubmit={submitHandler}>
+        <label htmlFor="Enter your prompt:"></label>
+        <input
+          type="text"
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="Write a content about..."
+          className="App-input"
+        />
+        <button className="App-button" type="submit">
+          Generate Content
+        </button>
+        <section className="App-response">
+          {mutation.isPending && <p>Generating your content</p>}
+          {mutation.isError && <p>{mutation.error.message}</p>}
+          {mutation.isSuccess && <p>{mutation.data}</p>}
+        </section>
+      </form>
     </div>
   );
-};
+}
 
 export default ChatBot;

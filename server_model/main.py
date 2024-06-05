@@ -68,7 +68,7 @@ def process_pdf(file_path):
     while i < len(lines):
         if "PATIENT NAME" in lines[i]:
             details["PATIENT NAME"] = lines[i + 1]
-        elif "Male" in lines[i] or "Female" in lines[i]:
+        elif "Male\n" in lines[i] or "Female\n" in lines[i]:
             details["SEX"] = lines[i]
         elif "Years" in lines[i]:
             details["AGE"] = lines[i]
@@ -131,9 +131,14 @@ def process_pdf(file_path):
 
         i += 1
 
-    return details
+    # json_fp=json.dumps(details)   #details dic -> json obj
+    with open('temp.json','w') as f: 
+        json.dump(details,f) #dictionary -> json file
+
+    return details #dictionary
 
 if __name__ == "__main__":
     file_path = sys.argv[1]
-    details = process_pdf(file_path)
+    details = process_pdf(file_path) #dictionary
     print(json.dumps(details))
+    

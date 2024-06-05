@@ -1,10 +1,16 @@
-// src/components/EditableForm.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useMutation } from '@tanstack/react-query';
+
+const makeRequestAPI = async (prompt) => {
+  const response = await axios.post('http://localhost:8080/diagnose', { prompt });
+  return response.data;
+};
 
 const EditableForm = ({ initialData }) => {
   const [formData, setFormData] = useState(initialData || {});
   const [isEditing, setIsEditing] = useState(false);
+  const [diagnosisReport, setDiagnosisReport] = useState(null);
 
   useEffect(() => {
     setFormData(initialData);
@@ -37,8 +43,8 @@ const EditableForm = ({ initialData }) => {
         );
       } else {
         return (
-          <div key={key} style={{ display: 'flex', marginBottom: '10px',fontSize:'15px' }}>
-            <div style={{textAlign:'center',justifyContent:'center', width: '150px', color: 'black', fontWeight: '400', backgroundColor: 'skyblue', borderRadius: '6px', padding:'4px' }}>
+          <div key={key} style={{ display: 'flex', marginBottom: '10px', fontSize: '15px' }}>
+            <div style={{ textAlign: 'center', justifyContent: 'center', width: '150px', color: 'black', fontWeight: '400', backgroundColor: 'skyblue', borderRadius: '6px', padding: '4px' }}>
               {key}
             </div>
             <div style={{ flex: 1, paddingLeft: '1rem', backgroundColor: 'ButtonHighlight', borderRadius: '6px', paddingTop: '4px' }}>
@@ -60,10 +66,16 @@ const EditableForm = ({ initialData }) => {
     });
   };
 
-  const handleEditToggle = () => {
-    setIsEditing(!isEditing);
-  };
+  const mutation = useMutation({
+    mutationFn: makeRequestAPI,
+    mutationKey: ['gemini-ai-request']
+  });
 
+  const submitHandler = (e) => {
+    e.preventDefault();
+    const prompt = JSON.stringify(formData);
+    mutation.mutate(prompt);
+  };
   const handleSave = async () => {
     try {
       const response = await axios.post('/save', formData);
@@ -83,26 +95,38 @@ const EditableForm = ({ initialData }) => {
         </span>
       </h1>
 
-      
+
       {renderFields(formData)}
+
+
       <button
         type="button"
-        class="mt-3 text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br font-medium rounded-lg text-s px-4 py-2.5 text-center inline-flex items-center me-2 mb-2"
-        onClick={handleEditToggle}
+        className="mt-3 text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br font-medium rounded-lg text-s px-4 py-2.5 text-center inline-flex items-center me-2 mb-2"
+        onClick={() => setIsEditing(!isEditing)}
       >
         {!isEditing && <img src="https://res.cloudinary.com/duwadnxwf/image/upload/v1716276383/icons8-edit-24_fpgba3.png" className="h-6 w-5 pb-1" />}
         {isEditing ? 'Cancel' : 'Edit'}
       </button>
-      {isEditing && 
-      <button type="button"
-        class="mt-3 mb-5 text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br font-medium rounded-lg text-s px-4 py-2.5 text-center inline-flex items-center me-2 mb-2"
-         onClick={handleSave}>Save</button>}
+      {isEditing &&
+        <button type="button"
+          className="mt-3 mb-5 text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br font-medium rounded-lg text-s px-4 py-2.5 text-center inline-flex items-center me-2 mb-2"
+          onClick={handleSave}>Save</button>}
 
-{!isEditing && <button type="button"
-        class="mt-3 mb-5 text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br font-medium rounded-lg text-s px-4 py-2.5 text-center inline-flex items-center me-2 mb-2"
-        >          Diagnose</button>} 
-      </div>
-      
+      {!isEditing &&
+        <form onSubmit={submitHandler}>
+          <button
+            type="submit"
+            className="mt-3 mb-5 text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br font-medium rounded-lg text-s px-4 py-2.5 text-center inline-flex items-center me-2 mb-2"
+          >
+            Diagnose
+          </button>
+        </form>
+      }
+
+      {mutation.isPending && <p>Generating your content</p>}
+      {mutation.isError && <p>{mutation.error.message}</p>}
+      {mutation.isSuccess && <p>{mutation.data}</p>}
+    </div>
   );
 };
 
