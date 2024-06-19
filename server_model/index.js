@@ -58,7 +58,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     // Send the extracted text to Gemini to generate a nested dictionary
     try {
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-      const prompt = `${extractedText} Generate a nested dictionary from the text where first give the patient details(name,age and sex) then give a dictionary where the primary keys are test categories (e.g., Blood Group, CBC) and each category contains a dictionary of test names as keys and their values as the test result along with their units as a single string without the range.`;
+      const prompt = `${extractedText} Generate a nested dictionary from the text where first give the patient details then give a dictionary where the primary keys are test categories (e.g., Blood Group, CBC) and each category contains a dictionary of test names as keys and their values as the test result along with their units as a single string without the range.Ignore non-whitespace characters.`;
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const generatedText = response.text();
