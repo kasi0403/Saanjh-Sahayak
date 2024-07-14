@@ -6,10 +6,11 @@ import { Link } from 'react-router-dom'
 
 const navigation = [
   { name: 'Home', href: '/' },
-  { name: 'LogIn', href: '../pages/Register'},
-  { name: 'ChatBot', href: '../pages/ChatBot' },
-  { name: 'Reports', href: '../pages/Reports' },
-  {name: 'Form',href:"../pages/Form"}
+  { name: 'LogIn', href: '/Login'},
+  { name: 'ChatBot', href: '/ChatBot' },
+  { name: 'Reports', href: '/Reports' },
+  {name: 'Form',href:"/Form"},
+  {name: 'Admin',href:"/Admin"}
 ]
 
 

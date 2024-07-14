@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useMutation } from '@tanstack/react-query';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-const makeRequestAPI = async (prompt) => {
-  const response = await axios.post('http://localhost:8080/diagnose', { prompt });
-  return response.data;
+const getWeekNumber = () => {
+  const currentDate = new Date();
+  return currentDate;
 };
 
-const EditableForm = ({ initialData }) => {
+const EditableForm = ({ selectedPatientId, initialData }) => {
   const [formData, setFormData] = useState(initialData || {});
   const [isEditing, setIsEditing] = useState(false);
-  const [diagnosisReport, setDiagnosisReport] = useState(null);
 
   useEffect(() => {
     setFormData(initialData);
@@ -37,24 +37,24 @@ const EditableForm = ({ initialData }) => {
       if (typeof value === 'object' && value !== null) {
         return (
           <div key={key}>
-            <strong style={{ display: 'block', marginTop: '10px', marginBottom: '5px' }}>{key}</strong>
+            <strong className="block mt-2 mb-1 text-base font-semibold text-gray-700">{key}</strong>
             {renderFields(value, currentPath)}
           </div>
         );
       } else {
         return (
-          <div key={key} style={{ display: 'flex', marginBottom: '10px', fontSize: '15px' }}>
-            <div style={{ textAlign: 'center', justifyContent: 'center', width: '150px', color: 'black', fontWeight: '400', backgroundColor: 'skyblue', borderRadius: '6px', padding: '4px' }}>
+          <div key={key} className="flex mb-2 text-sm">
+            <div className="flex items-center justify-center w-36 text-black font-medium bg-blue-300 rounded-md p-1.5">
               {key}
             </div>
-            <div style={{ flex: 1, paddingLeft: '1rem', backgroundColor: 'ButtonHighlight', borderRadius: '6px', paddingTop: '4px' }}>
+            <div className="flex-1 pl-4 bg-gray-100 rounded-md p-1.5">
               {isEditing ? (
                 <input
                   type="text"
                   name={key}
                   value={value}
                   onChange={(e) => handleInputChange(e, currentPath)}
-                  style={{ width: '800px', backgroundColor: 'ButtonHighlight' }}
+                  className="w-full bg-gray-100 text-black font-medium rounded-md p-1.5"
                 />
               ) : (
                 <span>{value}</span>
@@ -66,66 +66,84 @@ const EditableForm = ({ initialData }) => {
     });
   };
 
-  const mutation = useMutation({
-    mutationFn: makeRequestAPI,
-    mutationKey: ['gemini-ai-request']
-  });
-
-  const submitHandler = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const prompt = JSON.stringify(formData);
-    mutation.mutate(prompt);
-  };
-  const handleSave = async () => {
     try {
-      const response = await axios.post('/save', formData);
+      const weekNumber = getWeekNumber();
+      const dataToSave = { ...formData, userId: selectedPatientId, date: weekNumber };
+      const response = await axios.post('http://localhost:8080/api/submit', dataToSave);
+      toast.success('Report submitted successfully!');
       console.log('Save response:', response.data);
       setIsEditing(false);
     } catch (error) {
       console.error('Error saving data:', error);
+      toast.error('Error submitting report. Please try again.');
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      const response = await axios.post('http://localhost:8080/save', formData);
+      toast.success('Report saved successfully!');
+      console.log('Save response:', response.data);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error saving data:', error);
+      toast.error('Error saving report. Please try again.');
     }
   };
 
   return (
-    <div className='pl-10 pr-10'>
-      <h1 className="mb-4 text-3xl font-extrabold text-blue-600 md:text-5xl lg:text-5xl pb-2 flex items-center">
+    <div className="px-10">
+      <h1 className="text-4xl font-bold py-3 flex items-center">
         Report Details
         <span className="ml-4">
           <img width={40} src="https://res.cloudinary.com/duwadnxwf/image/upload/v1716300380/patient_u29wkb.png" alt="patient icon" />
         </span>
       </h1>
 
-
       {renderFields(formData)}
 
+      <div className="flex justify-between mt-3">
+        {isEditing ? (
+          <>
+            <button
+              type="button"
+              className="text-white bg-blue-500 hover:bg-blue-700 font-medium rounded-lg text-sm px-4 py-2 inline-flex items-center me-2 mb-2"
+              onClick={() => setIsEditing(false)}
+            >
+              <img src="https://res.cloudinary.com/duwadnxwf/image/upload/v1716276383/icons8-edit-24_fpgba3.png" className="h-6 w-5 pb-1 mr-2" />
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="text-white bg-blue-500 hover:bg-blue-700 font-medium rounded-lg text-sm px-4 py-2 inline-flex items-center me-2 mb-2"
+              onClick={handleSave}
+            >
+              Save
+            </button>
+          </>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex">
+            <button
+              type="submit"
+              className="text-white bg-blue-500 hover:bg-blue-700 font-medium rounded-lg text-sm px-4 py-2 inline-flex items-center me-2 mb-2"
+            >
+              Submit
+            </button>
+            <button
+              type="button"
+              className="text-white bg-blue-500 hover:bg-blue-700 font-medium rounded-lg text-sm px-4 py-2 inline-flex items-center me-2 mb-2"
+              onClick={() => setIsEditing(true)}
+            >
+              <img src="https://res.cloudinary.com/duwadnxwf/image/upload/v1716276383/icons8-edit-24_fpgba3.png" className="h-6 w-5 pb-1 mr-2" />
+              Edit
+            </button>
+          </form>
+        )}
+      </div>
 
-      <button
-        type="button"
-        className="mt-3 text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br font-medium rounded-lg text-s px-4 py-2.5 text-center inline-flex items-center me-2 mb-2"
-        onClick={() => setIsEditing(!isEditing)}
-      >
-        {!isEditing && <img src="https://res.cloudinary.com/duwadnxwf/image/upload/v1716276383/icons8-edit-24_fpgba3.png" className="h-6 w-5 pb-1" />}
-        {isEditing ? 'Cancel' : 'Edit'}
-      </button>
-      {isEditing &&
-        <button type="button"
-          className="mt-3 mb-5 text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br font-medium rounded-lg text-s px-4 py-2.5 text-center inline-flex items-center me-2 mb-2"
-          onClick={handleSave}>Save</button>}
-
-      {!isEditing &&
-        <form onSubmit={submitHandler}>
-          <button
-            type="submit"
-            className="mt-3 mb-5 text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br font-medium rounded-lg text-s px-4 py-2.5 text-center inline-flex items-center me-2 mb-2"
-          >
-            Diagnose
-          </button>
-        </form>
-      }
-
-      {mutation.isPending && <p>Generating your content</p>}
-      {mutation.isError && <p>{mutation.error.message}</p>}
-      {mutation.isSuccess && <p>{mutation.data}</p>}
+      <ToastContainer />
     </div>
   );
 };

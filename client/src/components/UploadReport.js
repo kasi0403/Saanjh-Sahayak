@@ -39,19 +39,22 @@ const UploadReport = ({ onReportData }) => {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '3rem' }}>
-      <div>
-        <input type="file" onChange={handleFileChange} />
-        <div>
-          <button
-            type="button"
-            className="mt-2 text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br font-medium rounded-lg text-s px-3 py-2 text-center me-2 mb-2"
-            onClick={handleUpload}
-            disabled={uploading}
-          >
-            {uploading ? 'Uploading...' : 'Upload Report'}
-          </button>
-          {error && <p style={{ color: 'red' }}>{error}</p>}
+    <div className="p-4 flex justify-center items-center min-h-screen">
+      <div className="w-full max-w-md">
+        <h2 className="text-4xl font-bold text-center">Upload Report</h2>
+        <div className="shadow-md rounded px-8 pt-6 pb-8 mb-4">
+          <input type="file" onChange={handleFileChange} className="block w-full text-m text-gray-700 mb-4" />
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              onClick={handleUpload}
+              disabled={uploading}
+            >
+              {uploading ? 'Uploading...' : 'Upload Report'}
+            </button>
+            {error && <p className="text-red-500">{error}</p>}
+          </div>
         </div>
       </div>
     </div>

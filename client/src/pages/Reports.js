@@ -1,8 +1,9 @@
 import React from 'react'
+import ReportsDisplay from '../components/ReportsDisplay'
 
 const Reports = () => {
   return (
-    <div>Reports</div>
+    <div><ReportsDisplay></ReportsDisplay></div>
   )
 }
 

@@ -1,5 +1,52 @@
-.background{
-    background-color: #ffffff;
-    background-image: linear-gradient(62deg, #ffffff 0%, #ededed 33%, #ffffff 66%, #ffffff 100%);
-    
+/* HomeUp.css */
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  margin: 0 1.75rem;
+  font-family: 'Sans-serif', Arial, sans-serif;
+}
+
+.text-section {
+  width: 50%;
+  padding: 1rem;
+}
+
+.text-section h2 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.text-section p {
+  color: #4A5568; /* Tailwind CSS gray-700 */
+}
+
+.image-section {
+  width: 50%;
+}
+
+.image-section img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .text-section, .image-section {
+    width: 100%;
+  }
+
+  .text-section {
+    margin-bottom: 1rem;
+  }
 }
