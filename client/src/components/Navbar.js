@@ -10,7 +10,8 @@ const navigation = [
   { name: 'ChatBot', href: '/ChatBot' },
   { name: 'Reports', href: '/Reports' },
   {name: 'Form',href:"/Form"},
-  {name: 'Admin',href:"/Admin"}
+  {name: 'Admin',href:"/Admin"},
+  {name: 'Patients',href:"/patients"}
 ]
 
 

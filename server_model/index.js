@@ -80,6 +80,62 @@ const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 //   }
 // });
 
+app.post('/chatbot', async (req, res) => {
+  const { userId, query, topK = 10 } = req.body;
+
+  if (!userId || !query) {
+    return res.status(400).send("User ID and query are required");
+  }
+
+  try {
+    const results = await reportDatasModel.aggregate([
+      {
+        $search: {
+          index: "default",
+          text: {
+            query: query,
+            path: [
+              "reportPdf.PATIENT NAME",
+              "reportPdf.SEX",
+              "reportPdf.AGE",
+              "reportPdf.TEST TYPE",
+              "reportPdf.TEST RESULTS.Haemoglobin",
+              "reportPdf.TEST RESULTS.RBC Count",
+              "reportPdf.TEST RESULTS.PCV",
+              "reportPdf.ADDITIONAL INFORMATION.Symptoms",
+              "reportPdf.ADDITIONAL INFORMATION.Current Medication Usage"
+            ]
+          }
+        }
+      },
+      {
+        $match: {
+          userId: userId
+        }
+      },
+      {
+        $project: {
+          score: { $meta: "searchScore" },
+          _id: 0,
+          userId: 1,
+          date: 1,
+          reportPdf: 1,
+          docNote: 1,
+          dietPlan: 1
+        }
+      },
+      {
+        $limit: topK
+      }
+    ]);
+
+    res.json(results);
+  } catch (error) {
+    console.error('Error performing search:', error);
+    res.status(500).send('Internal Server Error: Failed to perform search');
+  }
+});
+
 app.post('/diagnose', async (req, res) => {
   const { userId } = req.body;
 
@@ -175,23 +231,23 @@ app.post('/diagnose', async (req, res) => {
   }
 });
 
-app.post('/chatbot',async(req,re)=>{
-  let {prompt} = req.body;
-  if (!prompt) {
-    return res.status(400).send("Prompt is required");
-  }
-  try{
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    res.send(text);
-  } catch (error) {
-    console.log(error);
-    res.status(500).send("Failed to generate content");
-  }
+// app.post('/chatbot',async(req,re)=>{
+//   let {prompt} = req.body;
+//   if (!prompt) {
+//     return res.status(400).send("Prompt is required");
+//   }
+//   try{
+//     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+//     const result = await model.generateContent(prompt);
+//     const response = await result.response;
+//     const text = response.text();
+//     res.send(text);
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).send("Failed to generate content");
+//   }
 
-})
+// })
 app.post('/upload', upload.single('file'), async (req, res) => {
   if (!req.file) {
     return res.status(400).send('No file uploaded');
